@@ -3,7 +3,12 @@
 AI-Powered Product Mockups + Caption Generator using LoRA + Stable Diffusion + LLAMA + LangGraph + RAG
 </pre>  
 # AI-Generated Product Mock-ups for Fashion/Retail Campaigns   
-https://github.com/user-attachments/assets/06fa3180-1806-472d-97f8-74be9585d294
+## Sample video and images:  
+https://github.com/user-attachments/assets/06fa3180-1806-472d-97f8-74be9585d294  
+
+<img width="413" height="392" alt="image" src="https://github.com/user-attachments/assets/b4c07e75-9a02-48a7-963f-a395e6d84960" />
+<img width="421" height="320" alt="image" src="https://github.com/user-attachments/assets/688cecd0-c1cc-425c-b856-bc75aa5ce8ed" />
+
 <pre>
 Problem:
   
