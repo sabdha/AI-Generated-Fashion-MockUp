@@ -1,8 +1,8 @@
-# AI-Generated-Fashion-MockUp
+# Agent-Driven Fashion Mock-Up with LoRA-Enhanced Diffusion and Query Optimization
 <pre>
-AI-Powered Product Mockups + Caption Generator using LoRA + Stable Diffusion + LLAMA + LangGraph + RAG
+Designed a self-reflective LLM agent that iteratively analyzes user queries to determine ambiguity. Based on confidence scores and heuristics, the agent either rewrites the query for clarity or performs retrieval from a fashion-style vector database. This intelligent routing ensures high-quality prompt generation for Stable Diffusion-based virtual try-on image synthesis.
 </pre>  
-# AI-Generated Product Mock-ups for Fashion/Retail Campaigns   
+# Agent-Driven Product Mock-Up with LoRA-Enhanced Diffusion and Query Optimization for Fashion/Retail Campaigns   
 ## Sample video and images:  
 https://github.com/user-attachments/assets/06fa3180-1806-472d-97f8-74be9585d294  
 
@@ -10,36 +10,45 @@ https://github.com/user-attachments/assets/06fa3180-1806-472d-97f8-74be9585d294
 <img width="421" height="320" alt="image" src="https://github.com/user-attachments/assets/688cecd0-c1cc-425c-b856-bc75aa5ce8ed" />
 
 <pre>
-Problem:
+Problem  
+Marketing and design teams often require high-quality, style-consistent mock-ups of fashion products (e.g., dresses, shirts,
+accessories) in various poses, styles, and backgrounds — well before physical prototypes are available. Manual design iterations
+are time-consuming and inconsistent.
   
-Marketing teams often need high-quality mock-ups of clothing (e.g., dresses, shirts, accessories) in different styles, poses,
-backgrounds — before the physical product exists.
-  
-Solution:
-  
-A PoC where a user:
-  1.	Uploads a few reference photos or descriptions.
-  2.	Chooses a prompt (e.g., “A red dress for party”).
-  3.	The system:
-        o	Uses LoRA-tuned Stable Diffusion to generate styled product images.
-        o	Uses LLAMA + RAG to help write ad copy or suggest styling tips.
-        o	Uses Lang Graph to manage flow (input → generation → captioning → approval/export).  
+Solution
+A proof-of-concept system that generates fashion mockups by combining fast generative models with intelligent language processing:
+
+  User Input: Users upload a few reference photos or provide a style/text prompt (e.g., “A red party dress in a studio background”).
+  LLM Agent Decision Layer: 
+    A self-reflective agent (LLAMA) analyzes the query through 3 stages:
+    -  Checks prompt clarity.
+    -  Decides whether to rewrite or retrieve from a vector database (RAG).
+    -  Forwards the final refined input to the generation pipeline.
+  Generation & Flow Management
+  -  LangGraph manages the end-to-end pipeline: input → decision → image generation → text generation → output.
+  -  LoRA-tuned Stable Diffusion models generate mock-up images aligned with the user’s style or pose.
+  -  RAG + LLAMA generates stylized captions or product marketing copy.  
 </pre>
 # System Architecture  
 <pre>
-User Query  
-    ↓  
-LLAMA + RAG  
-    ↓  
-LangGraph (detects try-on intent)  
-    ↓  
-FashionVectorDB (gets clothing style vector/image)  
-    ↓  
-Workflow Decision AI (builds input for image generation)  
-    ↓  
-Stable Diffusion + LoRA (Style + Person)  
-    ↓  
-AI-Generated Image`  
++------------------+
+|   User Query     |
++------------------+
+         ↓
++---------------------------+
+|    LLM Agent (Multi-Pass) |  ← decides:
+|   - Query Analyzer        |      • Is input vague?
+|   - Rewrite or RAG?       |      • Should we guide or retrieve?
++---------------------------+
+    ↓                     ↓
+Prompt Rewrite     RAG (FashionVectorDB)
+    ↓                     ↓
+       +-------------------------------+
+       | Stable Diffusion + LoRA/SDXL |
+       +-------------------------------+
+                      ↓
+       Generated Fashion Mockup Image
+  
 </pre>
 
 # 🔧 Tech Stack   
