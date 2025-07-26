@@ -1,8 +1,6 @@
 ## Agent-Driven Fashion Mock-Up with LoRA-Enhanced Diffusion and Query Optimization
   
-Designed a self-reflective LLM agent that iteratively analyzes user queries to determine ambiguity.Based on confidence scores and heuristics,  
-the agent either rewrites the query for clarity or performs retrieval from a fashion-style vector database. This intelligent routing ensures  
-high-quality prompt generation for Stable Diffusion-based virtual try-on(in progress) image synthesis.    
+Designed a multipass reasoning agent with creative generation capabilities that iteratively analyzes user queries for ambiguity. Based on heuristic evaluation, it either rewrites vague prompts or performs retrieval from a fashion-specific vector database. This intelligent flow ensures high-quality prompt generation for Stable Diffusion-based mockup image synthesis. (Virtual try-on module is under development.)    
      
 ## Agent-Driven Product Mock-Up with LoRA-Enhanced Diffusion and Query Optimization for Fashion/Retail Campaigns   
 ## Sample video and images:  
