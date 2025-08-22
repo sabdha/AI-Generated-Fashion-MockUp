@@ -1,0 +1,33 @@
+# Core ML
+torch
+torchvision
+torchaudio
+git+https://github.com/huggingface/diffusers.git
+accelerate
+safetensors
+langchain_community
+unstructured
+# LoRA / PEFT
+peft
+bitsandbytes  # (if using QLoRA)
+
+# Image Processing
+Pillow
+opencv-python
+
+# CLIP
+git+https://github.com/openai/CLIP.git
+
+# Vector DB
+chromadb
+
+# FastAPI server
+fastapi
+uvicorn
+starlette
+pydantic
+
+# Optional utils
+tqdm
+numpy
+scipy
