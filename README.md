@@ -4,7 +4,9 @@ Designed a multipass reasoning agent with creative generation capabilities that 
      
 ## Agent-Driven Product Mock-Up with LoRA-Enhanced Diffusion and Query Optimization for Fashion/Retail Campaigns   
 ## Sample video and images:  
-https://github.com/user-attachments/assets/06fa3180-1806-472d-97f8-74be9585d294  
+https://github.com/user-attachments/assets/43429c4f-e1dc-4333-b218-36fd4f6b3e8b  
+
+
 
 <img width="413" height="392" alt="image" src="https://github.com/user-attachments/assets/b4c07e75-9a02-48a7-963f-a395e6d84960" />
 <img width="421" height="320" alt="image" src="https://github.com/user-attachments/assets/688cecd0-c1cc-425c-b856-bc75aa5ce8ed" />
