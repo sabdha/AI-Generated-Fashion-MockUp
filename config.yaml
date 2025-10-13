@@ -1,0 +1,268 @@
+# ===============================
+# AI Fashion Mock-up Generator
+# ===============================
+
+project:
+  name: fashion-mockup
+  version: 0.3.0
+  run_id: "${RUN_ID:-local-dev}"        # env override friendly
+  seed: 12345                           # set -1 for fully random seeds
+  precision: "fp16"                     # fp32 | fp16 | bf16
+  device: "cuda"                        # cuda | cpu
+  cudnn_benchmark: true
+
+paths:
+  # input
+  product_images_dir: "data/products"   # front/flat-lay or garment PNGs with alpha if possible
+  model_images_dir: "data/models"       # human model images
+  pose_hint_dir: "data/hints/pose"      # keypoint/pose PNGs (optional)
+  edge_hint_dir: "data/hints/hed"       # HED/edge maps (optional)
+  masks_dir: "data/masks"               # garment/body masks (optional)
+  # output
+  out_dir: "outputs/${project.run_id}"
+  tmp_dir: "outputs/${project.run_id}/_tmp"
+  logs_dir: "logs"
+  cache_dir: ".cache"
+  # artifacts
+  models_dir: "models"
+  loras_dir: "models/loras"
+  controlnets_dir: "models/controlnets"
+
+model:
+  # choose one backbone
+  backbone: "sdxl"                      # sdxl | sd15
+  sd15:
+    repo_or_path: "runwayml/stable-diffusion-v1-5"
+    vae: "stabilityai/sd-vae-ft-mse"
+  sdxl:
+    repo_or_path: "stabilityai/stable-diffusion-xl-base-1.0"
+    refiner_repo: "stabilityai/stable-diffusion-xl-refiner-1.0"  # optional
+    use_refiner: true
+
+  loras:
+    enable: true
+    list:
+      - name: "garment-style"           # e.g., trained on your brand’s look
+        path: "models/loras/garment-style.safetensors"
+        weight: 0.8
+      - name: "fabric-texture"
+        path: "models/loras/fabric-texture.safetensors"
+        weight: 0.5
+  text_encoder_finetune:
+    enable: false                       # set true if you fine-tuned TE; otherwise leave off
+
+controlnet:
+  enable: true
+  hints:                                # choose any that you actually provide
+    pose:
+      enable: true
+      model_path: "models/controlnets/sdxl-controlnet-openpose.safetensors"
+      strength: 0.8
+      guess_mode: false
+    hed:
+      enable: false
+      model_path: "models/controlnets/sdxl-controlnet-hed.safetensors"
+      strength: 0.6
+      guess_mode: true
+    depth:
+      enable: false
+      model_path: "models/controlnets/sdxl-controlnet-depth.safetensors"
+      strength: 0.6
+      guess_mode: false
+  start_step: 0.0                        # [0,1] fraction of diffusion
+  end_step: 1.0
+
+conditioning:
+  prompt_template: |
+    Ultra-detailed fashion photo of a model wearing {{garment_name}} in {{fabric}} {{color}},
+    realistic fit and natural drape, {{style}} style, studio lighting, 85mm lens, high detail skin,
+    focus on garment seams and texture, editorial quality
+  negative_prompt_template: |
+    low res, blurry, deformed limbs, extra fingers, bad hands, bad anatomy, misaligned garment,
+    artifacts, watermark, text, logo
+
+  # optional style presets you can switch via CLI flag or API param
+  presets:
+    editorial:
+      add_prompt: "Vogue editorial lighting, soft shadows, subtle HDR"
+      add_negative: ""
+    ecommerce:
+      add_prompt: "white seamless background, centered framing, color-accurate"
+      add_negative: "dramatic shadows, heavy vignetting"
+    street:
+      add_prompt: "outdoor natural light, shallow depth-of-field, urban vibe"
+      add_negative: "studio light"
+
+  # how to combine product + model image
+  image_conditioning:
+    use_ip_adapter: false                # if you have IP-Adapter weights
+    ip_adapter_path: ""                  # path if enabled
+    weight: 0.6
+
+preprocess:
+  background_removal:
+    enable: true
+    method: "rembg"                      # rembg | sam2 | none
+    keep_hair_details: true
+  garment_segmentation:
+    enable: true
+    model: "vit-clothes-seg"             # your choice; placeholder
+    classes: ["top", "bottom", "dress", "outerwear"]
+  resizing:
+    long_side: 1536
+    keep_aspect: true
+  color_management:
+    enforce_srgb: true
+
+compositing:
+  # how the garment from product image is mapped onto the model
+  warping:
+    method: "thin-plate-spline"          # tps | homography | none
+    landmarks: "auto"                    # auto | file
+    blend_mode: "poisson"                # alpha | poisson | softlight
+    feather_px: 6
+  shadow_relighting:
+    enable: true
+    method: "normal-map-estimation"      # simple | normal-map-estimation
+    intensity: 0.7
+
+inference:
+  width: 1024
+  height: 1024
+  scheduler: "DPM++_2M"                  # euler | dpm++ | ddim | lcm
+  steps: 28
+  guidance_scale: 4.5                    # CFG
+  refiner:
+    when: "last_20pct"                   # never | last_10pct | last_20pct | always
+    steps_share: 0.2
+    guidance_scale: 3.5
+  batch:
+    images_per_prompt: 2
+    max_concurrent: 2
+  tiling:
+    enable: false
+    overlap: 64
+    tile: 512
+  highres_fix:
+    enable: true
+    upscale_first: 1.2
+    second_pass_steps: 12
+  upscaler:
+    enable: true
+    model: "4x-UltraSharp"               # pick your ESRGAN/Real-ESRGAN file
+    scale: 2
+  face_restoration:
+    enable: true
+    model: "CodeFormer"
+    weight: 0.6
+  safety:
+    nsfw_filter: true
+    watermark_remove: true
+
+runtime:
+  dataloader:
+    shuffle: false
+    num_workers: 4
+    pin_memory: true
+  memory_optim:
+    xformers: true
+    attention_slicing: "auto"
+    vae_slicing: true
+    sequential_offload: false
+
+api:
+  serve: true
+  host: "0.0.0.0"
+  port: 8080
+  cors_allow_origins: ["*"]
+  auth:
+    enabled: false
+    api_keys: []
+  rate_limit:
+    enabled: true
+    rpm: 60
+
+logging:
+  level: "INFO"
+  save_prompts: true
+  save_intermediates: true
+  keep_k_best: 10
+  tracking:
+    wandb:
+      enable: false
+      project: "fashion-mockup"
+      entity: ""
+      run_name: "${project.run_id}"
+
+orchestration:
+  # if you’re using LangGraph/CrewAI-style agents, wire the steps here
+  graph:
+    nodes:
+      - id: "ingest"
+        task: "collect_inputs"           # product img, model img, metadata
+      - id: "preprocess"
+        task: "segment_and_remove_bg"
+        needs: ["ingest"]
+      - id: "warp"
+        task: "garment_warp_and_composite"
+        needs: ["preprocess"]
+      - id: "gen"
+        task: "txt2img_or_img2img"
+        needs: ["warp"]
+      - id: "refine"
+        task: "refiner_upscale_facefix"
+        needs: ["gen"]
+      - id: "qc"
+        task: "auto_qc_and_retry"        # checks misalignment, artifacts; may loop back to gen
+        needs: ["refine"]
+      - id: "export"
+        task: "write_outputs_and_metadata"
+        needs: ["qc"]
+  retry_policy:
+    max_retries: 2
+    on_fail: "reduce_guidance_and_steps"
+
+qc:
+  enable: true
+  checks:
+    alignment_threshold: 0.72            # IoU of warped garment vs body region
+    blur_threshold_laplacian: 65.0
+    face_artifact_score_max: 0.35
+    nsfw_must_be_false: true
+  auto_fix:
+    reduce_guidance_by: 0.5
+    increase_steps_by: 6
+
+metadata:
+  save_json_sidecar: true
+  fields:
+    - "backbone"
+    - "loras"
+    - "controlnet.hints"
+    - "prompts"
+    - "seed"
+    - "scheduler"
+    - "steps"
+    - "guidance_scale"
+
+cli_profiles:
+  ecommerce_basic:
+    inference:
+      width: 1024
+      height: 1024
+      steps: 24
+      guidance_scale: 4.0
+    conditioning:
+      preset: "ecommerce"
+  editorial_highres:
+    inference:
+      width: 1216
+      height: 1216
+      steps: 32
+      guidance_scale: 5.0
+      highres_fix:
+        enable: true
+        upscale_first: 1.4
+        second_pass_steps: 14
+    conditioning:
+      preset: "editorial"
